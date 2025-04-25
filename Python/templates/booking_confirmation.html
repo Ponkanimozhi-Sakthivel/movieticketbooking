@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmed{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking_confirmation.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-card">
+        <div class="success-icon">✓</div>
+        <h2>Booking Confirmed!</h2>
+        
+        <div class="booking-details">
+            <h3>{{ booking.show.movie.title }}</h3>
+            <div class="detail-item">
+                <span class="label">Booking ID:</span>
+                <span>#{{ booking.id }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Show Date:</span>
+                <span>{{ booking.show.show_time.strftime('%d %b %Y') }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Show Time:</span>
+                <span>{{ booking.show.show_time.strftime('%I:%M %p') }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Theater:</span>
+                <span>{{ booking.show.screen.theater.name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Screen:</span>
+                <span>{{ booking.show.screen.name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Seats:</span>
+                <span>{{ seats|join(', ') }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Price per Ticket:</span>
+                <span>₹{{ booking.show.price }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Number of Tickets:</span>
+                <span>{{ seats|length }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Total Amount:</span>
+                <span class="total-amount">₹{{ booking.show.price * seats|length }}</span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Book More Tickets</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">My Bookings</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

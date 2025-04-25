@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Book Tickets - {{ show.movie.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="booking-container">
+    <div class="show-info">
+        <h3>{{ show.movie.title }}</h3>
+        <p><strong>Date & Time:</strong> {{ show.show_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+        <p><strong>Theater:</strong> {{ show.screen.theater.name }}</p>
+        <p><strong>Screen:</strong> {{ show.screen.name }}</p>
+        <p><strong>Price per Ticket:</strong> ₹{{ show.price }}</p>
+    </div>
+
+    <div class="screen-container">
+        <div class="screen">SCREEN THIS WAY</div>
+        <form method="POST" id="booking-form">
+            <div class="seat-layout">
+                {% for row in 'ABCDEFGHIJ' %}
+                <div class="row-label">{{ row }}</div>
+                {% for num in range(1, 11) %}
+                    {% set seat_number = row ~ num %}
+                    {% set seat = seats|selectattr('seat_number', 'eq', seat_number)|first %}
+                    <div class="seat-wrapper">
+                        <input type="checkbox" 
+                               id="seat-{{ seat_number }}" 
+                               name="seats[]" 
+                               value="{{ seat_number }}"
+                               class="seat-checkbox"
+                               {% if seat and seat.status != 'Available' %}disabled{% endif %}>
+                        <label for="seat-{{ seat_number }}" 
+                               class="seat {% if seat and seat.status != 'Available' %}booked{% endif %}"
+                               data-seat="{{ seat_number }}">
+                            {{ num }}
+                        </label>
+                    </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+
+            <div class="seat-info">
+                <div class="seat-type available">Available</div>
+                <div class="seat-type selected">Selected</div>
+                <div class="seat-type booked">Booked</div>
+            </div>
+
+            <div class="price-summary" data-price="{{ show.price }}">
+                <p><strong>Price per ticket:</strong> ₹{{ show.price }}</p>
+                <p><strong>Selected seats:</strong> <span id="selected-seats">0</span></p>
+                <p><strong>Total amount:</strong> ₹<span id="total-amount">0</span></p>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="book-btn" disabled>
+                Confirm Booking
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Change this line to ensure we have a valid number
+const PRICE_PER_TICKET = Number('{{ show.price|int }}');
+</script>
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
+{% endblock %}

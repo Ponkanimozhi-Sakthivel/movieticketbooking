@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - MovieTix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>My Bookings</h2>
+    
+    {% if bookings %}
+        <div class="bookings-grid">
+            {% for booking in bookings %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <h3>{{ booking.show.movie.title }}</h3>
+                    <span class="status {{ booking.status.lower() }}">{{ booking.status }}</span>
+                </div>
+                
+                <div class="booking-details">
+                    <p><strong>Show Time:</strong> {{ booking.show.show_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    <p><strong>Screen:</strong> {{ booking.show.screen.name }}</p>
+                    <p><strong>Theater:</strong> {{ booking.show.screen.theater.name }}</p>
+                    <p><strong>Seats:</strong> 
+                        {% for seat in booking.seats %}
+                            {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p><strong>Total Price:</strong> ₹{{ "%.2f"|format(booking.show.price * booking.seats|length) }}</p>
+                    <p><strong>Booking ID:</strong> {{ booking.id }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-bookings">
+            <p>You haven't made any bookings yet.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Book Tickets</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.bookings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.booking-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.booking-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.status.confirmed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status.cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.booking-details p {
+    margin: 8px 0;
+    color: #2c3e50;
+}
+
+.no-bookings {
+    text-align: center;
+    padding: 40px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.no-bookings p {
+    margin-bottom: 20px;
+    color: #666;
+}
+</style>
+{% endblock %}
