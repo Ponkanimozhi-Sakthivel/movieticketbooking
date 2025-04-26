@@ -18,6 +18,7 @@
             {% if session.get('is_admin') %}
                 <a href="{{ url_for('admin_movies') }}">Manage Movies</a>
                 <a href="{{ url_for('admin_shows') }}">Manage Shows</a>
+                <a href="{{ url_for('admin_bookings') }}">Manage Bookings</a>
             {% endif %}
             {% if session.get('user_id') %}
                 <a href="{{ url_for('dashboard') }}">My Bookings</a>

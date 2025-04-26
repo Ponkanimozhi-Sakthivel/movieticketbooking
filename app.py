@@ -602,6 +602,98 @@ def initialize_seats_for_show(show_id):
         print(f"Error initializing seats: {str(e)}")
         return False
 
+@app.route('/admin/bookings')
+def admin_bookings():
+    if not session.get('is_admin'):
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('login'))
+    
+    # Get all bookings with joined data
+    bookings = Booking.query\
+        .join(Show)\
+        .join(Movie)\
+        .join(Screen)\
+        .join(Theater)\
+        .join(User)\
+        .order_by(Booking.booking_time.desc())\
+        .all()
+
+    # Group bookings by movie
+    bookings_by_movie = {}
+    for booking in bookings:
+        movie_title = booking.show.movie.title
+        if movie_title not in bookings_by_movie:
+            bookings_by_movie[movie_title] = {
+                'bookings': [],
+                'total_amount': 0,
+                'total_seats': 0
+            }
+        bookings_by_movie[movie_title]['bookings'].append(booking)
+        bookings_by_movie[movie_title]['total_amount'] += booking.show.price * len(booking.seats)
+        bookings_by_movie[movie_title]['total_seats'] += len(booking.seats)
+
+    # Group by theater
+    bookings_by_theater = {}
+    for booking in bookings:
+        theater_name = booking.show.screen.theater.name
+        if theater_name not in bookings_by_theater:
+            bookings_by_theater[theater_name] = {
+                'bookings': [],
+                'total_amount': 0,
+                'total_seats': 0
+            }
+        bookings_by_theater[theater_name]['bookings'].append(booking)
+        bookings_by_theater[theater_name]['total_amount'] += booking.show.price * len(booking.seats)
+        bookings_by_theater[theater_name]['total_seats'] += len(booking.seats)
+
+    # Group by date
+    bookings_by_date = {}
+    for booking in bookings:
+        booking_date = booking.show.show_time.date()
+        if booking_date not in bookings_by_date:
+            bookings_by_date[booking_date] = {
+                'bookings': [],
+                'total_amount': 0,
+                'total_seats': 0
+            }
+        bookings_by_date[booking_date]['bookings'].append(booking)
+        bookings_by_date[booking_date]['total_amount'] += booking.show.price * len(booking.seats)
+        bookings_by_date[booking_date]['total_seats'] += len(booking.seats)
+
+    return render_template('admin/bookings.html',
+                         bookings=bookings,
+                         bookings_by_movie=bookings_by_movie,
+                         bookings_by_theater=bookings_by_theater,
+                         bookings_by_date=bookings_by_date)
+
+@app.route('/admin/bookings/cancel/<int:booking_id>')
+def admin_cancel_booking(booking_id):
+    if not session.get('is_admin'):
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('login'))
+    
+    booking = Booking.query.get_or_404(booking_id)
+    
+    try:
+        # Update booking status
+        booking.status = 'Cancelled'
+        
+        # Release the seats
+        for seat in booking.seats:
+            seat.status = 'Available'
+            seat.booking_id = None
+        
+        # Update show's available seats
+        booking.show.available_seats += len(booking.seats)
+        
+        db.session.commit()
+        flash('Booking cancelled successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error cancelling booking', 'danger')
+    
+    return redirect(url_for('admin_bookings'))
+
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():

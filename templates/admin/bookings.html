@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Management - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <!-- Search and Filter Controls -->
+    <div class="search-controls">
+        <input type="text" id="searchInput" placeholder="Search bookings..." class="search-input">
+        <select id="statusFilter" class="filter-select">
+            <option value="all">All Status</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        <input type="date" id="dateFilter" class="filter-input">
+    </div>
+
+
+    <!-- All Bookings Tab -->
+    <div class="tab-content active" id="all-bookings">
+        <div class="bookings-list">
+            {% for booking in bookings %}
+            <div class="booking-card" data-status="{{ booking.status }}" data-date="{{ booking.show.show_time.strftime('%Y-%m-%d') }}">
+                <div class="booking-header">
+                    <h3>{{ booking.show.movie.title }}</h3>
+                    <span class="status {{ booking.status.lower() }}">{{ booking.status }}</span>
+                </div>
+                
+                <div class="booking-details">
+                    <p><strong>Booking ID:</strong> #{{ booking.id }}</p>
+                    <p><strong>User:</strong> {{ booking.user.username }} ({{ booking.user.email }})</p>
+                    <p><strong>Show Time:</strong> {{ booking.show.show_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    <p><strong>Theater:</strong> {{ booking.show.screen.theater.name }}</p>
+                    <p><strong>Screen:</strong> {{ booking.show.screen.name }}</p>
+                    <p><strong>Seats:</strong> 
+                        {% for seat in booking.seats %}
+                            {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p><strong>Total Amount:</strong> ₹{{ booking.show.price * booking.seats|length }}</p>
+                    <p><strong>Booking Time:</strong> {{ booking.booking_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                </div>
+
+                <div class="booking-actions">
+                    {% if booking.status == 'Confirmed' %}
+                    <button onclick="cancelBooking('{{ booking.id }}')" class="btn btn-danger">Cancel Booking</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- By Movie Tab -->
+    <div class="tab-content" id="by-movie">
+        {% for movie, data in bookings_by_movie.items() %}
+        <div class="group-section">
+            <div class="group-header">
+                <h3>{{ movie }}</h3>
+                <div class="group-stats">
+                    <span>Total Bookings: {{ data.bookings|length }}</span>
+                    <span>Total Seats: {{ data.total_seats }}</span>
+                    <span>Total Revenue: ₹{{ "%.2f"|format(data.total_amount) }}</span>
+                </div>
+            </div>
+            <div class="bookings-list">
+                {% for booking in data.bookings %}
+                <div class="booking-card" data-status="{{ booking.status }}" data-date="{{ booking.show.show_time.strftime('%Y-%m-%d') }}">
+                    <div class="booking-header">
+                        <h3>{{ booking.show.movie.title }}</h3>
+                        <span class="status {{ booking.status.lower() }}">{{ booking.status }}</span>
+                    </div>
+                    
+                    <div class="booking-details">
+                        <p><strong>Booking ID:</strong> #{{ booking.id }}</p>
+                        <p><strong>User:</strong> {{ booking.user.username }} ({{ booking.user.email }})</p>
+                        <p><strong>Show Time:</strong> {{ booking.show.show_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                        <p><strong>Theater:</strong> {{ booking.show.screen.theater.name }}</p>
+                        <p><strong>Screen:</strong> {{ booking.show.screen.name }}</p>
+                        <p><strong>Seats:</strong> 
+                            {% for seat in booking.seats %}
+                                {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p><strong>Total Amount:</strong> ₹{{ booking.show.price * booking.seats|length }}</p>
+                        <p><strong>Booking Time:</strong> {{ booking.booking_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    </div>
+
+                    <div class="booking-actions">
+                        {% if booking.status == 'Confirmed' %}
+                        <button onclick="cancelBooking('{{ booking.id }}')" class="btn btn-danger">Cancel Booking</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- By Theater Tab -->
+    <div class="tab-content" id="by-theater">
+        {% for theater, data in bookings_by_theater.items() %}
+        <div class="group-section">
+            <div class="group-header">
+                <h3>{{ theater }}</h3>
+                <div class="group-stats">
+                    <span>Total Bookings: {{ data.bookings|length }}</span>
+                    <span>Total Seats: {{ data.total_seats }}</span>
+                    <span>Total Revenue: ₹{{ "%.2f"|format(data.total_amount) }}</span>
+                </div>
+            </div>
+            <div class="bookings-list">
+                {% for booking in data.bookings %}
+                <div class="booking-card" data-status="{{ booking.status }}" data-date="{{ booking.show.show_time.strftime('%Y-%m-%d') }}">
+                    <div class="booking-header">
+                        <h3>{{ booking.show.movie.title }}</h3>
+                        <span class="status {{ booking.status.lower() }}">{{ booking.status }}</span>
+                    </div>
+                    
+                    <div class="booking-details">
+                        <p><strong>Booking ID:</strong> #{{ booking.id }}</p>
+                        <p><strong>User:</strong> {{ booking.user.username }} ({{ booking.user.email }})</p>
+                        <p><strong>Show Time:</strong> {{ booking.show.show_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                        <p><strong>Theater:</strong> {{ booking.show.screen.theater.name }}</p>
+                        <p><strong>Screen:</strong> {{ booking.show.screen.name }}</p>
+                        <p><strong>Seats:</strong> 
+                            {% for seat in booking.seats %}
+                                {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p><strong>Total Amount:</strong> ₹{{ booking.show.price * booking.seats|length }}</p>
+                        <p><strong>Booking Time:</strong> {{ booking.booking_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    </div>
+
+                    <div class="booking-actions">
+                        {% if booking.status == 'Confirmed' %}
+                        <button onclick="cancelBooking('{{ booking.id }}')" class="btn btn-danger">Cancel Booking</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- By Date Tab -->
+    <div class="tab-content" id="by-date">
+        {% for date, data in bookings_by_date.items()|sort(reverse=true) %}
+        <div class="group-section">
+            <div class="group-header">
+                <h3>{{ date.strftime('%d %B %Y') }}</h3>
+                <div class="group-stats">
+                    <span>Total Bookings: {{ data.bookings|length }}</span>
+                    <span>Total Seats: {{ data.total_seats }}</span>
+                    <span>Total Revenue: ₹{{ "%.2f"|format(data.total_amount) }}</span>
+                </div>
+            </div>
+            <div class="bookings-list">
+                {% for booking in data.bookings %}
+                <div class="booking-card" data-status="{{ booking.status }}" data-date="{{ booking.show.show_time.strftime('%Y-%m-%d') }}">
+                    <div class="booking-header">
+                        <h3>{{ booking.show.movie.title }}</h3>
+                        <span class="status {{ booking.status.lower() }}">{{ booking.status }}</span>
+                    </div>
+                    
+                    <div class="booking-details">
+                        <p><strong>Booking ID:</strong> #{{ booking.id }}</p>
+                        <p><strong>User:</strong> {{ booking.user.username }} ({{ booking.user.email }})</p>
+                        <p><strong>Show Time:</strong> {{ booking.show.show_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                        <p><strong>Theater:</strong> {{ booking.show.screen.theater.name }}</p>
+                        <p><strong>Screen:</strong> {{ booking.show.screen.name }}</p>
+                        <p><strong>Seats:</strong> 
+                            {% for seat in booking.seats %}
+                                {{ seat.seat_number }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p><strong>Total Amount:</strong> ₹{{ booking.show.price * booking.seats|length }}</p>
+                        <p><strong>Booking Time:</strong> {{ booking.booking_time.strftime('%d %b %Y, %I:%M %p') }}</p>
+                    </div>
+
+                    <div class="booking-actions">
+                        {% if booking.status == 'Confirmed' %}
+                        <button onclick="cancelBooking('{{ booking.id }}')" class="btn btn-danger">Cancel Booking</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-controls select,
+.filter-controls input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.bookings-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.booking-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.booking-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.status.confirmed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.booking-details p {
+    margin: 8px 0;
+    color: #2c3e50;
+}
+
+.booking-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.search-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.filter-select, .filter-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 150px;
+}
+
+.search-input:focus, .filter-select:focus, .filter-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    color: #666;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .search-controls {
+        flex-direction: column;
+    }
+    
+    .search-input,
+    .filter-select,
+    .filter-input {
+        width: 100%;
+    }
+}
+
+.tab-navigation {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    background: #3498db;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.group-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.group-section h3 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+.group-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.group-stats span {
+    padding: 4px 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Tab switching
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+            
+            // Update active states
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            button.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            // Reapply filters
+            filterBookings();
+        });
+    });
+
+    function filterBookings() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const status = statusFilter.value.toLowerCase();
+        const date = dateFilter.value;
+        const activeTab = document.querySelector('.tab-content.active');
+        const cards = activeTab.querySelectorAll('.booking-card');
+
+        cards.forEach(card => {
+            let showCard = true;
+
+            // Search filter
+            if (searchTerm) {
+                const searchableText = card.textContent.toLowerCase();
+                if (!searchableText.includes(searchTerm)) {
+                    showCard = false;
+                }
+            }
+
+            // Status filter
+            if (status !== 'all' && card.dataset.status.toLowerCase() !== status) {
+                showCard = false;
+            }
+
+            // Date filter
+            if (date && card.dataset.date !== date) {
+                showCard = false;
+            }
+
+            card.style.display = showCard ? 'block' : 'none';
+        });
+
+        // Update group sections visibility
+        const groupSections = activeTab.querySelectorAll('.group-section');
+        groupSections.forEach(section => {
+            const visibleCards = section.querySelectorAll('.booking-card[style="display: block"]');
+            section.style.display = visibleCards.length > 0 ? 'block' : 'none';
+        });
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', filterBookings);
+    statusFilter.addEventListener('change', filterBookings);
+    dateFilter.addEventListener('input', filterBookings);
+
+    // Initialize
+    filterBookings();
+});
+
+// Booking cancellation
+function cancelBooking(bookingId) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+        window.location.href = `/admin/bookings/cancel/${bookingId}`;
+    }
+}
+</script>
+{% endblock %}
